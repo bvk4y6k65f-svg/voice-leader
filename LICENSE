@@ -1,0 +1,25 @@
+Copyright (c) 2026 Hans-Christian von Consbruch. Alle Rechte vorbehalten.
+
+Voice Leader (Programmcode, Gestaltung und Bedienkonzept) ist urheberrechtlich
+geschützt. Ohne vorherige schriftliche Zustimmung des Rechteinhabers ist es nicht
+gestattet, die Software oder Teile davon zu vervielfältigen, zu verändern, zu
+bearbeiten, zu verbreiten, öffentlich zugänglich zu machen oder in andere Werke
+zu übernehmen. Das Ansehen des Quelltexts auf GitHub begründet kein Nutzungsrecht.
+
+Ausgenommen sind die Klangdateien im Ordner "sounds/". Sie stammen von Dritten
+und stehen unter deren eigenen Lizenzen:
+
+- sounds/piano/: Salamander Grand Piano von Alexander Holm,
+  Creative Commons Attribution 3.0 (CC BY 3.0),
+  https://creativecommons.org/licenses/by/3.0/
+- sounds/tenor/, sounds/alto/: MusyngKite-Soundfont über midi-js-soundfonts
+  von Benjamin Gleitzman, Creative Commons Attribution-ShareAlike 3.0
+  (CC BY-SA 3.0), https://creativecommons.org/licenses/by-sa/3.0/
+  Die Klänge wurden für die App gekürzt und in Mono umgewandelt.
+
+---
+
+Copyright (c) 2026 Hans-Christian von Consbruch. All rights reserved.
+No permission is granted to copy, modify, distribute or use this software or any
+part of it without prior written consent, except for the third-party sound files
+in "sounds/", which remain under their own licences listed above.
