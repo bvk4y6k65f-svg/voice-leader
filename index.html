@@ -159,7 +159,7 @@ details.help ul{margin:6px 0 0;padding-left:20px}
     <button class="chip" data-ap="chrBelow">2 Halbtöne chromatisch von unten</button>
     <button class="chip" data-ap="chrAbove">2 Halbtöne chromatisch von oben</button>
     <button class="chip" data-k="apprRand">Zufall: gewählte gemischt, manchmal keine</button></div>
-    <p class="hint">Klick wählt eine Anspielung, Cmd/Strg-Klick wählt mehrere. Mehrere ohne Zufall wechseln sich der Reihe nach ab.</p></div>
+    <p class="hint">Antippen schaltet eine Anspielung ein oder aus, mehrere sind möglich. „Aus“ hebt alle auf. Mehrere ohne Zufall wechseln sich der Reihe nach ab.</p></div>
   <div class="grp"><span>Tempo: <output id="tempoOut">120</output> BPM</span><input type="range" id="tempo" min="40" max="320" step="2" value="120" aria-label="Tempo"></div>
   <div class="grp"><span>Swing: <output id="swOut">64</output> %</span>
     <div class="seg"><button class="chip" data-k="swing">Swing an</button><input type="range" id="swr" min="50" max="75" value="64" aria-label="Swing-Anteil" style="flex:1"></div></div>
@@ -702,7 +702,7 @@ function ensureAudio(){
     const len=sr*2,ir=ctx.createBuffer(2,len,sr);for(let ch=0;ch<2;ch++){const d=ir.getChannelData(ch);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,3.2)}
     const conv=ctx.createConvolver();conv.buffer=ir;revIn=ctx.createGain();revIn.gain.value=.2;revIn.connect(conv);conv.connect(master);
   }
-  if(ctx.state==='suspended'&&!paused)ctx.resume();
+  if(ctx.state!=='running'&&ctx.state!=='closed'&&!paused)ctx.resume().catch(()=>{});
 }
 const mtof=m=>440*2**((m-69)/12);
 function noise(t,dur){const s=ctx.createBufferSource();s.buffer=noiseBuf;s.loop=true;s.start(t,Math.random()*.5);s.stop(t+dur);return s}
@@ -793,7 +793,7 @@ function markNow(id){nowId=id;$$('.ring.now').forEach(e=>e.classList.remove('now
 function setPlayUI(on){$('#play').textContent=on?'■ Stopp':`▶ Zeile ${S.row+1} abspielen`;const pb=$('#pause');pb.disabled=!on;pb.classList.toggle('on',on&&paused);pb.textContent=on&&paused?'▶ Fortsetzen':'⏸ Pause'}
 /* Ereignisse laufen nach der Audio-Uhr: bei Pause steht alles gemeinsam still */
 function at(P,time,fn){P.ev.push({time,fn})}
-function pump(){const P=playing;if(!P||paused)return;const now=ctx.currentTime;const due=P.ev.filter(e=>e.time<=now);P.ev=P.ev.filter(e=>e.time>now);due.sort((a,b)=>a.time-b.time).forEach(e=>e.fn())}
+function pump(){const P=playing;if(!P||paused)return;if(ctx.state!=='running'){ctx.resume().catch(()=>{});return}const now=ctx.currentTime;const due=P.ev.filter(e=>e.time<=now);P.ev=P.ev.filter(e=>e.time>now);due.sort((a,b)=>a.time-b.time).forEach(e=>e.fn())}
 function togglePause(){if(!playing||!ctx)return;if(paused){paused=false;ctx.resume()}else{paused=true;ctx.suspend()}setPlayUI(true)}
 async function play(repeat){
   if(!song)return;ensureAudio();if(!ctx){msg('Dieser Browser kann keinen Ton abspielen.',true);return}
@@ -881,7 +881,7 @@ function syncCtl(){
 }
 document.addEventListener('click',e=>{
   const ab=e.target.closest('[data-ap]');
-  if(ab){const v=ab.dataset.ap;if(v==='off')S.apprSet=[];else if(e.metaKey||e.ctrlKey){S.apprSet=S.apprSet.includes(v)?S.apprSet.filter(x=>x!==v):[...S.apprSet,v]}else S.apprSet=(S.apprSet.length===1&&S.apprSet[0]===v)?[]:[v];save();syncCtl();return}
+  if(ab){const v=ab.dataset.ap;if(v==='off')S.apprSet=[];else S.apprSet=S.apprSet.includes(v)?S.apprSet.filter(x=>x!==v):[...S.apprSet,v];save();syncCtl();return}
   const kb=e.target.closest('[data-k]');
   if(kb){const k=kb.dataset.k;S[k]=kb.dataset.v!==undefined?(k==='reg'?+kb.dataset.v:kb.dataset.v):!S[k];save();syncCtl();
     if(['notation','t9','t11','t13'].includes(k))render();return}
@@ -985,6 +985,8 @@ $('#saveSong').onclick=()=>{const r=fromEditor();if(r)importSongs(r)};
 try{COMBO=parseIRealLinks(COMBO_LINK).map((s,i)=>({id:'c'+i,title:s.title,info:`${s.bars.length} Takte · Combo-Liste`,text:toText(s),tempo:s.tempo}))}catch(e){COMBO=[]}
 $('#libQ').oninput=renderLib;
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')&&!/claude\.(ai|site)|claudeusercontent/.test(location.host)){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&ctx&&!paused&&ctx.state!=='running')ctx.resume().catch(()=>{})});
+document.addEventListener('touchend',()=>{if(ctx&&!paused&&ctx.state!=='running')ctx.resume().catch(()=>{})},{passive:true});
 syncCtl();renderLib();
 loadSong(findSong(store.get('vl-last',''))||COMBO[0]||BUILTIN[0]);
 }
