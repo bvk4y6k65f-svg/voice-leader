@@ -118,6 +118,7 @@ details.help ul{margin:6px 0 0;padding-left:20px}
 @media(max-width:800px){.bottom{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:600px){:root{--row:42px}.cell b{font-size:20px}.btn.pri{min-width:0;flex:1 1 100%}}
 @media(prefers-reduced-motion:reduce){.strip.snap{transition:none}}
+[data-ap]{touch-action:manipulation}
 </style>
 </head>
 <body>
@@ -159,7 +160,7 @@ details.help ul{margin:6px 0 0;padding-left:20px}
     <button class="chip" data-ap="chrBelow">2 Halbtöne chromatisch von unten</button>
     <button class="chip" data-ap="chrAbove">2 Halbtöne chromatisch von oben</button>
     <button class="chip" data-k="apprRand">Zufall: gewählte gemischt, manchmal keine</button></div>
-    <p class="hint">Antippen schaltet eine Anspielung ein oder aus, mehrere sind möglich. „Aus“ hebt alle auf. Mehrere ohne Zufall wechseln sich der Reihe nach ab.</p></div>
+    <p class="hint">Tippen wählt eine Anspielung, Doppeltipp (oder Cmd/Strg-Klick) schaltet weitere dazu oder weg. „Aus“ hebt alle auf. Mehrere ohne Zufall wechseln sich der Reihe nach ab.</p></div>
   <div class="grp"><span>Tempo: <output id="tempoOut">120</output> BPM</span><input type="range" id="tempo" min="40" max="320" step="2" value="120" aria-label="Tempo"></div>
   <div class="grp"><span>Swing: <output id="swOut">64</output> %</span>
     <div class="seg"><button class="chip" data-k="swing">Swing an</button><input type="range" id="swr" min="50" max="75" value="64" aria-label="Swing-Anteil" style="flex:1"></div></div>
@@ -881,7 +882,7 @@ function syncCtl(){
 }
 document.addEventListener('click',e=>{
   const ab=e.target.closest('[data-ap]');
-  if(ab){const v=ab.dataset.ap;if(v==='off')S.apprSet=[];else S.apprSet=S.apprSet.includes(v)?S.apprSet.filter(x=>x!==v):[...S.apprSet,v];save();syncCtl();return}
+  if(ab){const v=ab.dataset.ap;if(v==='off')S.apprSet=[];else{const t=performance.now(),tg=(L)=>L.includes(v)?L.filter(x=>x!==v):[...L,v];if(e.metaKey||e.ctrlKey)S.apprSet=tg(S.apprSet);else if(apTap&&apTap.v===v&&t-apTap.t<400){S.apprSet=tg(apTap.prev);apTap=null}else{apTap={v,t,prev:[...S.apprSet]};S.apprSet=(S.apprSet.length===1&&S.apprSet[0]===v)?[]:[v]}}save();syncCtl();return}
   const kb=e.target.closest('[data-k]');
   if(kb){const k=kb.dataset.k;S[k]=kb.dataset.v!==undefined?(k==='reg'?+kb.dataset.v:kb.dataset.v):!S[k];save();syncCtl();
     if(['notation','t9','t11','t13'].includes(k))render();return}
@@ -985,6 +986,7 @@ $('#saveSong').onclick=()=>{const r=fromEditor();if(r)importSongs(r)};
 try{COMBO=parseIRealLinks(COMBO_LINK).map((s,i)=>({id:'c'+i,title:s.title,info:`${s.bars.length} Takte · Combo-Liste`,text:toText(s),tempo:s.tempo}))}catch(e){COMBO=[]}
 $('#libQ').oninput=renderLib;
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')&&!/claude\.(ai|site)|claudeusercontent/.test(location.host)){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+let apTap=null;
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&ctx&&!paused&&ctx.state!=='running')ctx.resume().catch(()=>{})});
 document.addEventListener('touchend',()=>{if(ctx&&!paused&&ctx.state!=='running')ctx.resume().catch(()=>{})},{passive:true});
 syncCtl();renderLib();
