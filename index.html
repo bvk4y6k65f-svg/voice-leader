@@ -20,7 +20,9 @@
    PICTURE: das Brett aus Messingwalzen mit roter Ablesemarke über der aktiven Zeile
    COLOUR and TYPE: Graphit und Stahl, Messing, Signalrot; Barlow Condensed für Töne, Barlow für Text
    LAYOUT: Titel und Wiedergabe oben, Regler, Schloss-Brett in Systemen wie ein Leadsheet, Standards und Import unten */
-:root{color-scheme:light dark;--bg:light-dark(#e7e9ec,#14161a);--pan:light-dark(#ffffff,#1d2026);--ink:light-dark(#16181c,#ecebe6);--mut:light-dark(#555c66,#a0a7b0);--ln:light-dark(#c9ced5,#30343c);--red:#d7263d;--row:46px;--hd:38px}
+:root{color-scheme:light dark;--bg:#e7e9ec;--pan:#fff;--ink:#16181c;--mut:#555c66;--ln:#c9ced5;--red:#d7263d;--row:46px;--hd:38px}
+@media(prefers-color-scheme:dark){:root{--bg:#14161a;--pan:#1d2026;--ink:#ecebe6;--mut:#a0a7b0;--ln:#30343c}}
+@supports(color:light-dark(#000,#fff)){:root{color-scheme:light dark;--bg:light-dark(#e7e9ec,#14161a);--pan:light-dark(#ffffff,#1d2026);--ink:light-dark(#16181c,#ecebe6);--mut:light-dark(#555c66,#a0a7b0);--ln:light-dark(#c9ced5,#30343c);--red:#d7263d;--row:46px;--hd:38px}}
 :root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
 *{box-sizing:border-box;min-width:0}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Barlow,system-ui,sans-serif;overflow-x:clip}
@@ -692,6 +694,7 @@ function guideLine(start){
 let paused=false,starting=false,ctx=null,master,revIn,noiseBuf,playing=null;
 function ensureAudio(){
   if(!ctx){
+    try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}
     const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;ctx=new AC();
     const comp=ctx.createDynamicsCompressor();comp.threshold.value=-14;comp.ratio.value=3;
     master=ctx.createGain();master.gain.value=.9;master.connect(comp);comp.connect(ctx.destination);
